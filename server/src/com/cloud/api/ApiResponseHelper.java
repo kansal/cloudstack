@@ -30,9 +30,6 @@ import java.util.TimeZone;
 
 import javax.inject.Inject;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
-
 import org.apache.cloudstack.acl.ControlledEntity;
 import org.apache.cloudstack.acl.ControlledEntity.ACLType;
 import org.apache.cloudstack.affinity.AffinityGroup;
@@ -159,6 +156,7 @@ import org.apache.cloudstack.storage.datastore.db.StoragePoolVO;
 import org.apache.cloudstack.usage.Usage;
 import org.apache.cloudstack.usage.UsageService;
 import org.apache.cloudstack.usage.UsageTypes;
+import org.apache.log4j.Logger;
 
 import com.cloud.agent.api.VgpuTypesInfo;
 import com.cloud.api.query.ViewResponseHelper;
@@ -506,7 +504,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         snapshotResponse.setTags(tagResponses);
 
@@ -791,7 +789,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         ipResponse.setTags(tagResponses);
 
@@ -833,7 +831,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         lbResponse.setTags(tagResponses);
 
@@ -1120,7 +1118,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
 
@@ -1258,18 +1256,18 @@ public class ApiResponseHelper implements ResponseGenerator {
                 Network network = ApiDBUtils.findNetworkById(singleNicProfile.getNetworkId());
                 if (network != null) {
                     if (network.getTrafficType() == TrafficType.Management) {
-                        vmResponse.setPrivateIp(singleNicProfile.getIp4Address());
+                        vmResponse.setPrivateIp(singleNicProfile.getIPv4Address());
                         vmResponse.setPrivateMacAddress(singleNicProfile.getMacAddress());
-                        vmResponse.setPrivateNetmask(singleNicProfile.getNetmask());
+                        vmResponse.setPrivateNetmask(singleNicProfile.getIPv4Netmask());
                     } else if (network.getTrafficType() == TrafficType.Control) {
-                        vmResponse.setLinkLocalIp(singleNicProfile.getIp4Address());
+                        vmResponse.setLinkLocalIp(singleNicProfile.getIPv4Address());
                         vmResponse.setLinkLocalMacAddress(singleNicProfile.getMacAddress());
-                        vmResponse.setLinkLocalNetmask(singleNicProfile.getNetmask());
+                        vmResponse.setLinkLocalNetmask(singleNicProfile.getIPv4Netmask());
                     } else if (network.getTrafficType() == TrafficType.Public) {
-                        vmResponse.setPublicIp(singleNicProfile.getIp4Address());
+                        vmResponse.setPublicIp(singleNicProfile.getIPv4Address());
                         vmResponse.setPublicMacAddress(singleNicProfile.getMacAddress());
-                        vmResponse.setPublicNetmask(singleNicProfile.getNetmask());
-                        vmResponse.setGateway(singleNicProfile.getGateway());
+                        vmResponse.setPublicNetmask(singleNicProfile.getIPv4Netmask());
+                        vmResponse.setGateway(singleNicProfile.getIPv4Gateway());
                     } else if (network.getTrafficType() == TrafficType.Guest) {
                         /*
                           * In basic zone, public ip has TrafficType.Guest in case EIP service is not enabled.
@@ -1286,10 +1284,10 @@ public class ApiResponseHelper implements ResponseGenerator {
                                 vmResponse.setGateway(vlan.getVlanGateway());
                             }
                         } else {
-                            vmResponse.setPublicIp(singleNicProfile.getIp4Address());
+                            vmResponse.setPublicIp(singleNicProfile.getIPv4Address());
                             vmResponse.setPublicMacAddress(singleNicProfile.getMacAddress());
-                            vmResponse.setPublicNetmask(singleNicProfile.getNetmask());
-                            vmResponse.setGateway(singleNicProfile.getGateway());
+                            vmResponse.setPublicNetmask(singleNicProfile.getIPv4Netmask());
+                            vmResponse.setGateway(singleNicProfile.getIPv4Gateway());
                         }
                     }
                 }
@@ -2073,7 +2071,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
 
@@ -2159,7 +2157,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
 
@@ -2210,7 +2208,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
 
@@ -2646,8 +2644,6 @@ public class ApiResponseHelper implements ResponseGenerator {
     @Override
     public ResourceTagResponse createResourceTagResponse(ResourceTag resourceTag, boolean keyValueOnly) {
         ResourceTagJoinVO rto = ApiDBUtils.newResourceTagView(resourceTag);
-        if(rto == null)
-            return null;
         return ApiDBUtils.newResourceTagResponse(rto, keyValueOnly);
     }
 
@@ -2756,7 +2752,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
         response.setObjectName("vpc");
@@ -2947,7 +2943,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         response.setTags(tagResponses);
         response.setObjectName("staticroute");
@@ -3425,7 +3421,7 @@ public class ApiResponseHelper implements ResponseGenerator {
             response.setVmId(vm.getUuid());
         }
 
-        response.setIpaddress(result.getIp4Address());
+        response.setIpaddress(result.getIPv4Address());
 
         if (result.getSecondaryIp()) {
             List<NicSecondaryIpVO> secondaryIps = ApiDBUtils.findNicSecondaryIps(result.getId());
@@ -3441,12 +3437,12 @@ public class ApiResponseHelper implements ResponseGenerator {
             }
         }
 
-        response.setGateway(result.getGateway());
-        response.setNetmask(result.getNetmask());
+        response.setGateway(result.getIPv4Gateway());
+        response.setNetmask(result.getIPv4Netmask());
         response.setMacAddress(result.getMacAddress());
 
-        if (result.getIp6Address() != null) {
-            response.setIp6Address(result.getIp6Address());
+        if (result.getIPv6Address() != null) {
+            response.setIp6Address(result.getIPv6Address());
         }
 
         response.setDeviceId(String.valueOf(result.getDeviceId()));
@@ -3515,7 +3511,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         List<ResourceTagResponse> tagResponses = new ArrayList<ResourceTagResponse>();
         for (ResourceTag tag : tags) {
             ResourceTagResponse tagResponse = createResourceTagResponse(tag, true);
-            CollectionUtils.addIgnoreNull(tagResponses,tagResponse);
+            tagResponses.add(tagResponse);
         }
         lbResponse.setTags(tagResponses);
 
